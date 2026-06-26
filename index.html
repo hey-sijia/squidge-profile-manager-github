@@ -149,6 +149,13 @@
   .conflict-toggle button.active-skip { background: var(--sur-var); color: var(--on-sur); font-weight: 500; }
   .conflict-toggle button.active-overwrite { background: var(--pri); color: var(--on-pri); font-weight: 500; }
   .modal-footer { padding: 16px 24px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--out-var); }
+
+  /* Upload toggle */
+  .header-spacer { flex: 1; }
+  .btn-toggle { display: inline-flex; align-items: center; gap: 6px; font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 500; padding: 0 14px; height: 32px; border-radius: 20px; border: 1px solid var(--out-var); background: transparent; color: var(--on-sur-var); cursor: pointer; transition: background 0.15s; }
+  .btn-toggle:hover { background: var(--sur-ch); }
+  .btn-toggle.active { background: var(--pri-con); color: var(--on-pri-con); border-color: var(--pri); }
+  .btn-toggle .mi { font-size: 16px; font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
 </style>
 </head>
 <body>
@@ -159,12 +166,16 @@
     <h1>Profile Manager</h1>
     <p>Works with squidge.org to automate avatar uploads and profile management</p>
   </div>
+  <div class="header-spacer"></div>
+  <button class="btn-toggle" id="uploadToggle" onclick="toggleUpload()" title="You can use this function along with squidge.org to automatically upload images and create a profile in one go. Turn off to use your own image hosting site (ie. you have to manually upload image URLs)">
+    <span class="mi">cloud_upload</span> Image upload
+  </button>
 </header>
 
 <div class="layout">
   <div class="panel">
 
-    <div class="card">
+    <div class="card" id="cardApiKey">
       <div class="card-header"><span class="mi">key</span><span class="card-title">Squidge API key</span></div>
       <div class="card-body">
         <div class="m3-field">
@@ -178,13 +189,10 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="cardUpload">
       <div class="card-header"><span class="mi">cloud_upload</span><span class="card-title">Upload avatar</span></div>
       <div class="card-body">
-        <div class="proxy-note">
-          <span class="mi">info</span>
-          <span>Requires proxy running locally:<br/><code>node proxy.js</code></span>
-        </div>
+       
         <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
           <span class="dz-icon">add_photo_alternate</span>
           <div class="dz-label">Drop image here or click to select</div>
@@ -206,7 +214,7 @@
           <div style="flex:1;">
             <div class="m3-field" style="margin-bottom:0;">
               <label class="m3-label">Avatar URL</label>
-              <input type="text" id="avatarUrl" class="m3-input" placeholder="Auto-filled after you upload an image" oninput="updatePreview()" />
+              <input type="text" id="avatarUrl" class="m3-input" placeholder="Auto-filled if you upload an image" oninput="updatePreview()" />
             </div>
           </div>
         </div>
@@ -298,12 +306,29 @@ const PROFILES_KEY = 'pm_profiles';
 const API_KEY_KEY  = 'pm_apikey';
 const PROXY_URL    = 'https://squidge-profile-manager-github.onrender.com/';
 
-let profiles = [], apiKey = '', activeFilter = 'all';
+let profiles = [], apiKey = '', activeFilter = 'all', uploadEnabled = true;
 
 function init() {
   try { apiKey = localStorage.getItem(API_KEY_KEY) || ''; if (apiKey) { document.getElementById('apiKey').value = apiKey; setKeyStatus('Key loaded ✓', true); } } catch(e){}
   try { const r = localStorage.getItem(PROFILES_KEY); if (r) profiles = JSON.parse(r); } catch(e){}
+  try { uploadEnabled = localStorage.getItem('pm_upload') !== 'off'; } catch(e){}
+  applyUploadToggle();
   render();
+}
+
+function toggleUpload() {
+  uploadEnabled = !uploadEnabled;
+  localStorage.setItem('pm_upload', uploadEnabled ? 'on' : 'off');
+  applyUploadToggle();
+}
+
+function applyUploadToggle() {
+  const show = uploadEnabled;
+  document.getElementById('cardApiKey').style.display = show ? '' : 'none';
+  document.getElementById('cardUpload').style.display  = show ? '' : 'none';
+  const btn = document.getElementById('uploadToggle');
+  btn.classList.toggle('active', show);
+  btn.innerHTML = `<span class="mi">${show ? 'cloud_upload' : 'cloud_off'}</span> ${show ? 'Image upload on' : 'Image upload off'}`;
 }
 
 function saveKey() {
