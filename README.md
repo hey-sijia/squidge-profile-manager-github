@@ -8,6 +8,10 @@
 
 The Profile Manager is a local tool for creating and storing fake social media profiles for use in multimedia AO3 fics. For each profile you can store an avatar image, a username, a display name if applicable (Twitter/X only), and a platform tag. From there you can copy any of those values directly into your workskin builder with one click.
 
+
+
+**If you want to automate image upload and profile creation in one place (have to use Squidge.org)**
+
 **Step 1 — Create a Squidge account**
 
 Squidge.org is a free image hosting service used to store your avatar images. You need an account to get an API key.
@@ -21,34 +25,27 @@ Squidge.org is a free image hosting service used to store your avatar images. Yo
 1. Log into your Squidge account
 2. Click your profile picture or username in the top right corner
 3. Go to **Settings**
+
+   <img width="326" height="321" alt="image" src="https://github.com/user-attachments/assets/70cb3e0e-ab5b-46b2-9cf1-aa6e50676604" />
+   
 4. Look for the **API** section — your API key will be listed there
+   
+   <img width="824" height="77" alt="image" src="https://github.com/user-attachments/assets/c867a926-bda2-4dee-a47b-0cf276397e46" />
+   
 5. Copy the key — it starts with `chv_`
 
-**Step 3 — Start the proxy**
 
-The Profile Manager uploads images through a local proxy that runs on your machine. You need to start it every time you use the tool.
+**Step 3 — Enter your API key**
 
-1. Open **Terminal** (Spotlight → type Terminal)
-2. Navigate to your Profile Manager folder. Type `cd ` with a space, then drag your folder from Finder into the Terminal window, then press enter
-3. Run the following command:
-
-```
-node proxy.js
-```
-
-4. You should see:
-```
-Squidge proxy running at http://localhost:16890
-Keep this terminal open while using the profile manager.
-```
-
-Leave this terminal window open the entire time you're using the tool.
+In the Profile Manager, paste your Squidge API key into the **API key** field at the top of the left panel and click **Save**. 
 
 
-**Step 4 — Enter your API key**
 
-In the Profile Manager, paste your Squidge API key into the **API key** field at the top of the left panel and click **Save**. You only need to do this once — it is stored in your browser for future sessions.
 
+**If you want to just use this as a database (use your own image hosting)**
+Turn off the image upload toggle and proceed.
+
+<img width="231" height="69" alt="image" src="https://github.com/user-attachments/assets/ac77f453-6458-49f7-842a-40ee4b260c31" />
 
 **Using the tool**
 
