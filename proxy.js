@@ -29,7 +29,7 @@ const server = http.createServer((req, res) => {
       const contentType = req.headers['content-type'] || '';
 
       const options = {
-        hostname: 'images.squidge.org',
+        hostname: 'squidge.org',
         path: '/api/1/upload',
         method: 'POST',
         headers: {
