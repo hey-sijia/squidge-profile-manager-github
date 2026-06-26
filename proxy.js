@@ -14,7 +14,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (req.method === 'POST' && req.url === '/upload') {
+ if (req.method === 'POST' && req.url.startsWith('/upload')) {
     const apiKey = req.headers['x-api-key'];
     if (!apiKey) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -29,7 +29,7 @@ const server = http.createServer((req, res) => {
       const contentType = req.headers['content-type'] || '';
 
       const options = {
-        hostname: 'squidge.org',
+        hostname: 'images.squidge.org',
         path: '/api/1/upload',
         method: 'POST',
         headers: {
