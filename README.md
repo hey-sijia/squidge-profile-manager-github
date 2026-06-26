@@ -8,6 +8,8 @@
 
 The Profile Manager is a local tool for creating and storing fake social media profiles for use in multimedia AO3 fics. For each profile you can store an avatar image, a username, a display name if applicable (Twitter/X only), and a platform tag. From there you can copy any of those values directly into your workskin builder with one click.
 
+
+
 **If you want to automate image upload and profile creation in one place (have to use Squidge.org)**
 
 **Step 1 — Create a Squidge account**
@@ -36,6 +38,9 @@ Squidge.org is a free image hosting service used to store your avatar images. Yo
 **Step 3 — Enter your API key**
 
 In the Profile Manager, paste your Squidge API key into the **API key** field at the top of the left panel and click **Save**. 
+
+
+
 
 **If you want to just use this as a database (use your own image hosting)**
 Turn off the image upload toggle and proceed.
