@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Profile Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<style>
+  :root {
+  --pri: #0061A4; --on-pri: #FFFFFF; --pri-con: #D1E4FF; --on-pri-con: #001D36;
+  --sec: #535F70; --on-sec: #FFFFFF; --sec-con: #D7E3F7; --on-sec-con: #101C2B;
+  --sur: #FDFCFF; --on-sur: #1A1C1E; --sur-var: #DFE2EB; --on-sur-var: #43474E;
+  --out: #73777F; --out-var: #C3C7CF;
+  --sur-c: #F0F0F7; --sur-ch: #E9E9F0; --sur-chh: #E3E2E9;
+  --err: #BA1A1A; --on-err: #FFFFFF;
+}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Roboto', sans-serif; background: var(--sur); color: var(--on-sur); min-height: 100vh; }
+
+  .app-header { background: var(--sur-c); border-bottom: 1px solid var(--out-var); padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 16px; }
+  .app-header .mi { color: var(--pri); font-size: 28px; font-family: 'Material Icons'; font-weight: normal; font-style: normal; display: inline-block; }
+  .header-text h1 { font-size: 22px; font-weight: 500; }
+  .header-text p  { font-size: 12px; font-family: 'Roboto Mono', monospace; color: var(--on-sur-var); margin-top: 1px; }
+
+  .layout { display: grid; grid-template-columns: 400px 1fr; min-height: calc(100vh - 64px); }
+  .panel { background: var(--sur); border-right: 1px solid var(--out-var); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .main-area { background: var(--sur-c); padding: 24px; overflow-y: auto; }
+
+  .card { background: var(--sur); border-radius: 12px; border: 1px solid var(--out-var); overflow: hidden; }
+  .card-header { padding: 14px 18px 10px; display: flex; align-items: center; gap: 10px; }
+  .card-header .mi { color: var(--pri); font-size: 20px; font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
+  .card-title { font-size: 14px; font-weight: 500; letter-spacing: 0.1px; }
+  .card-body { padding: 0 18px 18px; }
+
+  .m3-label { font-size: 12px; font-weight: 500; color: var(--on-sur-var); margin-bottom: 5px; letter-spacing: 0.04em; display: block; }
+  .m3-input, .m3-select {
+    width: 100%; font-family: 'Roboto', sans-serif; font-size: 14px; color: var(--on-sur);
+    border: none; border-bottom: 2px solid var(--out); border-radius: 4px 4px 0 0;
+    padding: 10px 12px; background: var(--sur-chh); outline: none; transition: border-color 0.15s;
+  }
+  .m3-input:focus, .m3-select:focus { border-bottom-color: var(--pri); }
+  .m3-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%2349454F' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; background-color: var(--sur-chh); cursor: pointer; }
+  .m3-row { display: flex; gap: 8px; align-items: flex-end; }
+  .m3-row .m3-input { flex: 1; }
+  .m3-field { margin-bottom: 14px; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+
+  .key-status { font-size: 12px; margin-top: 5px; min-height: 16px; color: var(--on-sur-var); }
+  .key-status.ok { color: #2D6A4F; }
+
+  .proxy-note { background: var(--sec-con); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; }
+  .proxy-note .mi { font-size: 16px; color: var(--sec); font-family: 'Material Icons'; font-weight: normal; font-style: normal; margin-top: 1px; flex-shrink: 0; }
+  .proxy-note span { font-family: 'Roboto Mono', monospace; font-size: 11px; color: var(--on-sec-con); line-height: 1.6; }
+  .proxy-note code { background: rgba(0,0,0,0.1); padding: 1px 5px; border-radius: 4px; }
+
+  .drop-zone { border: 2px dashed var(--out-var); border-radius: 12px; padding: 28px 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: var(--sur-c); }
+  .drop-zone:hover, .drop-zone.over { border-color: var(--pri); background: var(--pri-con); }
+  .drop-zone.uploading { opacity: 0.5; pointer-events: none; }
+  .dz-icon { font-size: 34px; color: var(--pri); font-family: 'Material Icons'; font-weight: normal; font-style: normal; display: block; }
+  .dz-label { font-size: 14px; color: var(--on-sur-var); margin-top: 6px; }
+  .dz-sub { font-size: 12px; color: var(--out); margin-top: 3px; }
+  #fileInput, #csvImportInput { display: none; }
+
+  .upload-status { font-family: 'Roboto Mono', monospace; font-size: 11px; margin-top: 7px; min-height: 16px; color: var(--on-sur-var); word-break: break-all; }
+  .upload-status.ok  { color: #2D6A4F; }
+  .upload-status.err { color: var(--err); }
+
+  .av-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .av-circle { width: 52px; height: 52px; border-radius: 50%; background: var(--sur-ch); border: 2px solid var(--out-var); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+  .av-circle img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .av-circle img.show { display: block; }
+  .av-circle .mi { color: var(--out); font-size: 24px; font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
+  .av-circle .mi.hide { display: none; }
+
+  /* Buttons */
+  .btn-filled { display: inline-flex; align-items: center; gap: 6px; font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; padding: 0 20px; height: 36px; border-radius: 20px; border: none; background: var(--pri); color: var(--on-pri); cursor: pointer; }
+  .btn-filled:hover { opacity: 0.88; }
+  .btn-filled .mi { font-size: 16px; font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
+  .btn-tonal { display: inline-flex; align-items: center; gap: 6px; font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; padding: 0 16px; height: 36px; border-radius: 20px; border: none; background: var(--sec-con); color: var(--on-sec-con); cursor: pointer; }
+  .btn-tonal:hover { opacity: 0.88; }
+  .btn-outline { display: inline-flex; align-items: center; gap: 6px; font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; padding: 0 16px; height: 36px; border-radius: 20px; border: 1px solid var(--out-var); background: transparent; color: var(--on-sur-var); cursor: pointer; }
+  .btn-outline:hover { background: var(--sur-ch); color: var(--on-sur); }
+  .btn-outline .mi { font-size: 16px; font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
+  .btn-text { display: inline-flex; align-items: center; gap: 6px; font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; padding: 0 12px; height: 36px; border-radius: 20px; border: none; background: transparent; color: var(--pri); cursor: pointer; }
+  .btn-text:hover { background: var(--pri-con); }
+  .btn-icon-sm { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--out-var); background: transparent; color: var(--on-sur-var); cursor: pointer; font-family: 'Material Icons'; font-weight: normal; font-style: normal; font-size: 18px; }
+  .btn-icon-sm:hover { background: var(--sur-ch); color: var(--on-sur); }
+  .btn-del { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: none; background: transparent; color: var(--out); cursor: pointer; font-size: 16px; }
+  .btn-del:hover { background: #FDE8E8; color: var(--err); }
+
+  /* Chips */
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; padding: 6px 16px; height: 32px; border-radius: 8px; border: 1px solid var(--out-var); background: transparent; color: var(--on-sur-var); cursor: pointer; transition: background 0.15s; }
+  .chip:hover { background: var(--sur-ch); }
+  .chip.active { background: var(--sec-con); color: var(--on-sec-con); border-color: transparent; }
+  .chip .mi { font-size: 16px; font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .toolbar-right { display: flex; align-items: center; gap: 8px; }
+  .count-label { font-size: 12px; color: var(--on-sur-var); font-family: 'Roboto Mono', monospace; }
+
+  /* Table */
+  .table-card { background: var(--sur); border-radius: 12px; border: 1px solid var(--out-var); overflow: hidden; }
+  .profile-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .profile-table th { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--on-sur-var); padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--out-var); background: var(--sur-c); }
+  .profile-table td { padding: 10px 14px; border-bottom: 1px solid var(--out-var); vertical-align: middle; }
+  .profile-table tr:last-child td { border-bottom: none; }
+  .profile-table tr:hover td { background: var(--sur-c); }
+  .av-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; display: block; border: 1px solid var(--out-var); }
+  .av-ph { width: 36px; height: 36px; border-radius: 50%; background: var(--sur-ch); border: 1px solid var(--out-var); display: flex; align-items: center; justify-content: center; }
+  .av-ph .mi { font-size: 18px; color: var(--out); font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
+
+  .platform-badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .badge-twitter { background: #DBEAFE; color: #1E40AF; }
+  .badge-tumblr  { background: #EDE9FE; color: #5B21B6; }
+  .badge-reddit  { background: #FFEDD5; color: #9A3412; }
+
+  .copy-group { display: flex; gap: 4px; }
+  .btn-copy { font-family: 'Roboto Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--out-var); background: transparent; color: var(--on-sur-var); cursor: pointer; transition: background 0.15s; }
+  .btn-copy:hover { background: var(--pri-con); color: var(--on-pri-con); border-color: var(--pri); }
+  .btn-copy.copied { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--on-sur-var); }
+  .empty-state .mi { font-size: 48px; color: var(--out-var); font-family: 'Material Icons'; font-weight: normal; font-style: normal; display: block; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--sur); border-radius: 28px; width: 580px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 6px 30px rgba(0,0,0,0.2); overflow: hidden; }
+  .modal-header { padding: 24px 24px 14px; }
+  .modal-header h2 { font-size: 20px; font-weight: 500; }
+  .modal-header p  { font-size: 13px; color: var(--on-sur-var); margin-top: 4px; }
+  .modal-apply-all { padding: 10px 24px; background: var(--sur-c); border-top: 1px solid var(--out-var); border-bottom: 1px solid var(--out-var); display: flex; align-items: center; gap: 10px; }
+  .modal-apply-all span { font-size: 13px; color: var(--on-sur-var); flex: 1; }
+  .modal-body { overflow-y: auto; flex: 1; }
+  .modal-clean { padding: 12px 24px; background: #F0FAF4; border-bottom: 1px solid var(--out-var); display: flex; align-items: center; gap: 8px; font-size: 13px; color: #2D6A4F; }
+  .modal-clean .mi { font-size: 18px; color: #2D6A4F; font-family: 'Material Icons'; font-weight: normal; font-style: normal; }
+  .conflict-row { display: flex; align-items: center; padding: 12px 24px; border-bottom: 1px solid var(--out-var); gap: 12px; }
+  .conflict-row:last-child { border-bottom: none; }
+  .conflict-av { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--out-var); flex-shrink: 0; }
+  .conflict-info { flex: 1; min-width: 0; }
+  .conflict-name { font-size: 14px; font-weight: 500; }
+  .conflict-handle { font-size: 12px; color: var(--on-sur-var); font-family: 'Roboto Mono', monospace; }
+  .conflict-toggle { display: flex; border: 1px solid var(--out-var); border-radius: 20px; overflow: hidden; flex-shrink: 0; }
+  .conflict-toggle button { font-family: 'Roboto', sans-serif; font-size: 12px; padding: 5px 14px; border: none; background: transparent; color: var(--on-sur-var); cursor: pointer; }
+  .conflict-toggle button.active-skip { background: var(--sur-var); color: var(--on-sur); font-weight: 500; }
+  .conflict-toggle button.active-overwrite { background: var(--pri); color: var(--on-pri); font-weight: 500; }
+  .modal-footer { padding: 16px 24px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--out-var); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <span class="mi">manage_accounts</span>
+  <div class="header-text">
+    <h1>Profile Manager</h1>
+    <p>Works with squidge.org to automate avatar uploads and profile management</p>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="panel">
+
+    <div class="card">
+      <div class="card-header"><span class="mi">key</span><span class="card-title">Squidge API key</span></div>
+      <div class="card-body">
+        <div class="m3-field">
+          <label class="m3-label">API key</label>
+          <div class="m3-row">
+            <input type="password" id="apiKey" class="m3-input" placeholder="chv_…" autocomplete="off" />
+            <button class="btn-tonal" onclick="saveKey()">Save</button>
+          </div>
+          <div class="key-status" id="keyStatus"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="mi">cloud_upload</span><span class="card-title">Upload avatar</span></div>
+      <div class="card-body">
+        <div class="proxy-note">
+          <span class="mi">info</span>
+          <span>Requires proxy running locally:<br/><code>node proxy.js</code></span>
+        </div>
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <span class="dz-icon">add_photo_alternate</span>
+          <div class="dz-label">Drop image here or click to select</div>
+          <div class="dz-sub">JPG, PNG, GIF</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/jpeg,image/png,image/gif" />
+        <div class="upload-status" id="uploadStatus"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="mi">person_add</span><span class="card-title">New profile</span></div>
+      <div class="card-body">
+        <div class="av-row">
+          <div class="av-circle" id="avatarCircle">
+            <span class="mi" id="avatarIcon">person</span>
+            <img id="avatarPreview" src="" alt="" />
+          </div>
+          <div style="flex:1;">
+            <div class="m3-field" style="margin-bottom:0;">
+              <label class="m3-label">Avatar URL</label>
+              <input type="text" id="avatarUrl" class="m3-input" placeholder="Auto-filled after you upload an image" oninput="updatePreview()" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field-grid" style="margin-top:14px;">
+          <div>
+            <label class="m3-label">Platform</label>
+            <select id="platform" class="m3-select" onchange="onPlatformChange()">
+              <option value="twitter">Twitter / X</option>
+              <option value="tumblr">Tumblr</option>
+              <option value="reddit">Reddit</option>
+            </select>
+          </div>
+          <div id="displayNameField">
+            <label class="m3-label">Display name</label>
+            <div class="m3-row">
+              <input type="text" id="displayName" class="m3-input" placeholder="e.g. Jamie Torres" />
+              <button class="btn-icon-sm" onclick="genName()" title="Generate">shuffle</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="m3-field">
+          <label class="m3-label" id="handleLabel">Username</label>
+          <div class="m3-row">
+            <input type="text" id="handle" class="m3-input" placeholder="Username" />
+            <button class="btn-icon-sm" onclick="genHandle()" title="Generate">shuffle</button>
+          </div>
+        </div>
+
+        <button class="btn-filled" style="width:100%;justify-content:center;" onclick="saveProfile()">
+          <span class="mi">save</span> Save profile
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="main-area">
+    <div class="toolbar">
+      <div class="filter-chips">
+        <button class="chip active" data-filter="all" onclick="setFilter('all',this)"><span class="mi">people</span>All</button>
+        <button class="chip" data-filter="twitter" onclick="setFilter('twitter',this)">Twitter</button>
+        <button class="chip" data-filter="tumblr" onclick="setFilter('tumblr',this)">Tumblr</button>
+        <button class="chip" data-filter="reddit" onclick="setFilter('reddit',this)">Reddit</button>
+      </div>
+      <div class="toolbar-right">
+        <span class="count-label" id="countLabel">0 profiles</span>
+        <button class="btn-outline" onclick="exportCSV()"><span class="mi">download</span>Export CSV</button>
+        <button class="btn-outline" onclick="document.getElementById('csvImportInput').click()"><span class="mi">upload</span>Import CSV</button>
+        <input type="file" id="csvImportInput" accept=".csv" />
+      </div>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <span class="mi">person_search</span>
+      <p>No profiles yet — add one on the left</p>
+    </div>
+
+    <div class="table-card" id="tableCard" style="display:none;">
+      <table class="profile-table">
+<thead><tr><th></th><th>Display name</th><th>Username</th><th>Platform</th><th>Copy</th><th>Delete</th></tr></thead>        <tbody id="profileTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Import CSV</h2>
+      <p id="modalSubtitle"></p>
+    </div>
+    <div class="modal-apply-all" id="applyAllRow" style="display:none;">
+      <span>Apply to all conflicts:</span>
+      <button class="btn-outline" onclick="applyAll('skip')">Skip all</button>
+      <button class="btn-tonal" onclick="applyAll('overwrite')">Overwrite all</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-text" onclick="closeModal()">Cancel</button>
+      <button class="btn-filled" onclick="confirmImport()"><span class="mi">check</span>Import</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROFILES_KEY = 'pm_profiles';
+const API_KEY_KEY  = 'pm_apikey';
+const PROXY_URL    = 'http://localhost:16890/upload';
+
+let profiles = [], apiKey = '', activeFilter = 'all';
+
+function init() {
+  try { apiKey = localStorage.getItem(API_KEY_KEY) || ''; if (apiKey) { document.getElementById('apiKey').value = apiKey; setKeyStatus('Key loaded ✓', true); } } catch(e){}
+  try { const r = localStorage.getItem(PROFILES_KEY); if (r) profiles = JSON.parse(r); } catch(e){}
+  render();
+}
+
+function saveKey() {
+  apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) return;
+  localStorage.setItem(API_KEY_KEY, apiKey);
+  setKeyStatus('Saved ✓', true);
+}
+function setKeyStatus(msg, ok) { const el = document.getElementById('keyStatus'); el.textContent = msg; el.className = 'key-status' + (ok ? ' ok' : ''); }
+function persist() { localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles)); }
+
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) uploadFile(f); });
+document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) uploadFile(e.target.files[0]); });
+
+async function uploadFile(file) {
+  const st = document.getElementById('uploadStatus');
+  if (!apiKey) { setStatus(st,'Enter and save your API key first','err'); return; }
+  dz.classList.add('uploading'); setStatus(st,'Uploading…','');
+  const fd = new FormData(); fd.append('source', file); fd.append('format', 'json');
+  try {
+    const res = await fetch(PROXY_URL, { method:'POST', headers:{'X-API-Key':apiKey}, body:fd });
+    const data = await res.json();
+    if (data.status_code === 200 && data.image?.image?.url) {
+      const url = data.image.image.url;
+      document.getElementById('avatarUrl').value = url; updatePreview();
+      setStatus(st, '✓ ' + url, 'ok');
+    } else {
+      setStatus(st, 'Upload failed: ' + (data.error?.message || JSON.stringify(data)), 'err');
+    }
+  } catch(e) { setStatus(st, 'Error: ' + e.message + ' — is proxy.js running?', 'err'); }
+  dz.classList.remove('uploading');
+}
+function setStatus(el, msg, type) { el.textContent = msg; el.className = 'upload-status' + (type ? ' '+type : ''); }
+
+function updatePreview() {
+  const url = document.getElementById('avatarUrl').value.trim();
+  const img = document.getElementById('avatarPreview');
+  const icon = document.getElementById('avatarIcon');
+  if (url) { img.src = url; img.className = 'show'; icon.className = 'mi hide'; }
+  else { img.className = ''; icon.className = 'mi'; }
+}
+
+const firstNames = ['Alex','Jamie','Morgan','Casey','Riley','Jordan','Taylor','Drew','Avery','Quinn','Sam','Blake','Reese','Sage','Rowan','Finley','Harley','Emery','Kendall','Dakota','Skyler','Parker','Logan','Hayden','River','Kai','Nova','Zara','Leo','Nina','Mia','Eli','Jade','Cole','Maya','Omar','Cleo','Remy','Lena','Theo','Iris','Nora','Ezra','Yara','Soren','Wren','Beau','Petra'];
+const lastNames  = ['Chen','Torres','Kim','Patel','Nguyen','Rivera','Brooks','Walsh','Okafor','Moreau','Santos','Reyes','Tanaka','Hassan','Johansson','Dubois','Ferreira','Kowalski','Andrade','Nakamura','Ali','Petrov','Hernandez','Osei','Larsson','Zhao','Novak','Bakker','Diallo','Svensson','Okoro','Mistry','Delacroix','Vasquez'];
+const adjectives = ['tiny','fuzzy','golden','sleepy','cosmic','vague','soft','quiet','odd','sharp','pale','swift','dense','wild','bright','hollow','lunar','stray','burnt','frozen','dusty','mossy','neon','silent','rusty'];
+const nouns      = ['moth','raven','pebble','socket','fern','crater','signal','ember','prism','current','vessel','marble','static','canopy','glitch','thistle','comet','dagger','mirror','puddle','fossil','lantern','pillow','anchor','circuit'];
+function rand(a) { return a[Math.floor(Math.random()*a.length)]; }
+function genName() { document.getElementById('displayName').value = rand(firstNames)+' '+rand(lastNames); }
+function genHandle() {
+  const p = document.getElementById('platform').value;
+  const b = rand(adjectives)+'_'+rand(nouns)+(Math.random()>0.5?Math.floor(Math.random()*999):'');
+  document.getElementById('handle').value = p==='twitter'?'@'+b:p==='tumblr'?b+'.tumblr.com':'u/'+b;
+}
+
+function onPlatformChange() {
+  const p = document.getElementById('platform').value;
+  document.getElementById('handleLabel').textContent = p==='twitter'?'Username)':p==='tumblr'?'Blog URL (name.tumblr.com)':'Username (u/name)';
+  document.getElementById('handle').value = '';
+  const nf = document.getElementById('displayNameField');
+  if (p==='twitter') { nf.style.display=''; } else { nf.style.display='none'; document.getElementById('displayName').value=''; }
+}
+
+function saveProfile() {
+  const url=document.getElementById('avatarUrl').value.trim();
+  const platform=document.getElementById('platform').value;
+  const name=(platform==='twitter')?document.getElementById('displayName').value.trim():'null';
+  const handle=document.getElementById('handle').value.trim();
+  if (platform==='twitter'&&!name){alert('Display name is required for Twitter.');return;}
+  if (!handle){alert('Handle is required.');return;}
+  profiles.push({id:Date.now(),url,name,handle,platform});
+  persist(); render();
+  document.getElementById('avatarUrl').value='';
+  document.getElementById('displayName').value='';
+  document.getElementById('handle').value='';
+  document.getElementById('avatarPreview').className='';
+  document.getElementById('avatarIcon').className='mi';
+  document.getElementById('uploadStatus').textContent='';
+}
+
+function deleteProfile(id) { profiles=profiles.filter(p=>p.id!==id); persist(); render(); }
+
+function setFilter(val, btn) {
+  activeFilter=val;
+  document.querySelectorAll('.chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function exportCSV() {
+  const rows=[['Display Name','Handle','Platform','Image URL']];
+  profiles.forEach(p=>rows.push(['"'+(p.name||'').replace(/"/g,'""')+'"','"'+(p.handle||'').replace(/"/g,'""')+'"','"'+(p.platform||'').replace(/"/g,'""')+'"','"'+(p.url||'').replace(/"/g,'""')+'"']));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
+  a.download='profiles.csv'; a.click();
+}
+
+let importPending={clean:[],conflicts:[]}, conflictDecisions=[];
+
+document.getElementById('csvImportInput').addEventListener('change', e=>{
+  const file=e.target.files[0]; e.target.value='';
+  if (!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>parseAndOpenImport(ev.target.result);
+  reader.readAsText(file);
+});
+
+function parseCSV(text) {
+  const lines=text.trim().split('\n'), rows=[];
+  for (let i=1;i<lines.length;i++) {
+    const cols=lines[i].replace(/\r/g,'').split(',').map(c=>c.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
+    if (cols.length<4) continue;
+    const [name,handle,platform,url]=cols;
+    if (!handle) continue;
+    rows.push({id:Date.now()+i,name:name||'null',handle,platform:platform.toLowerCase(),url});
+  }
+  return rows;
+}
+
+function parseAndOpenImport(text) {
+  const incoming=parseCSV(text);
+  if (!incoming.length){alert('No valid rows found in CSV.');return;}
+  const clean=[],conflicts=[];
+  incoming.forEach(row=>{
+    const dupe=profiles.find(p=>p.handle===row.handle&&p.platform===row.platform);
+    if (dupe) conflicts.push({incoming:row,existing:dupe}); else clean.push(row);
+  });
+  importPending={clean,conflicts};
+  conflictDecisions=conflicts.map(()=>'skip');
+  openModal();
+}
+
+function openModal() {
+  const {clean,conflicts}=importPending;
+  document.getElementById('modalSubtitle').textContent=conflicts.length+' conflict'+(conflicts.length!==1?'s':'')+', '+clean.length+' new';
+  document.getElementById('applyAllRow').style.display=conflicts.length?'':'none';
+  const body=document.getElementById('modalBody'); body.innerHTML='';
+  if (clean.length) {
+    const d=document.createElement('div'); d.className='modal-clean';
+    d.innerHTML='<span class="mi">check_circle</span> '+clean.length+' profile'+(clean.length!==1?'s':'')+' will be imported without conflicts';
+    body.appendChild(d);
+  }
+  conflicts.forEach((c,i)=>{
+    const row=document.createElement('div'); row.className='conflict-row';
+    const av=c.incoming.url?`<img class="conflict-av" src="${esc(c.incoming.url)}" alt="" onerror="this.style.display='none'"/>`:`<div class="conflict-av" style="background:var(--sur-ch);"></div>`;
+    row.innerHTML=`${av}<div class="conflict-info"><div class="conflict-name">${c.incoming.name==='null'?'':esc(c.incoming.name)} ${esc(c.incoming.handle)}</div><div class="conflict-handle">${esc(c.incoming.platform)} · already exists</div></div><div class="conflict-toggle" id="toggle-${i}"><button onclick="setDecision(${i},'skip')" class="active-skip">Skip</button><button onclick="setDecision(${i},'overwrite')">Overwrite</button></div>`;
+    body.appendChild(row);
+  });
+  document.getElementById('importModal').classList.add('open');
+}
+
+function setDecision(i,val) {
+  conflictDecisions[i]=val;
+  const t=document.getElementById('toggle-'+i);
+  t.children[0].className=val==='skip'?'active-skip':'';
+  t.children[1].className=val==='overwrite'?'active-overwrite':'';
+}
+function applyAll(val) { conflictDecisions=conflictDecisions.map(()=>val); importPending.conflicts.forEach((_,i)=>setDecision(i,val)); }
+function closeModal() { document.getElementById('importModal').classList.remove('open'); }
+function confirmImport() {
+  const {clean,conflicts}=importPending;
+  clean.forEach(r=>profiles.push(r));
+  conflicts.forEach((c,i)=>{ if (conflictDecisions[i]==='overwrite') { const idx=profiles.findIndex(p=>p.handle===c.existing.handle&&p.platform===c.existing.platform); if (idx!==-1) profiles[idx]={...c.incoming,id:c.existing.id}; } });
+  persist(); render(); closeModal();
+}
+
+function render() {
+  const filtered=activeFilter==='all'?profiles:profiles.filter(p=>p.platform===activeFilter);
+  const total=profiles.length, shown=filtered.length;
+  document.getElementById('countLabel').textContent=activeFilter==='all'?total+' profile'+(total!==1?'s':''):shown+' of '+total;  document.getElementById('emptyState').style.display=shown===0?'':'none';
+  document.getElementById('tableCard').style.display=shown===0?'none':'';
+  const tbody=document.getElementById('profileTbody'); tbody.innerHTML='';
+  filtered.forEach(p=>{
+    const bc=p.platform==='twitter'?'badge-twitter':p.platform==='tumblr'?'badge-tumblr':'badge-reddit';
+    const bl=p.platform==='twitter'?'Twitter':p.platform==='tumblr'?'Tumblr':'Reddit';
+    const av=p.url?`<img class="av-img" src="${esc(p.url)}" alt="" onerror="this.style.display='none'"/>`:`<div class="av-ph"><span class="mi">person</span></div>`;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="width:48px;">${av}</td><td style="font-weight:500;">${p.name==='null'?'':esc(p.name)}</td><td style="font-family:'Roboto Mono',monospace;font-size:12px;color:var(--on-sur-var);">${esc(p.handle)}</td><td><span class="platform-badge ${bc}">${bl}</span></td><td><div class="copy-group"><button class="btn-copy" data-val="${esc(p.url)}" onclick="copyVal(this)">PROFILE IMAGE URL</button>${p.platform==='twitter'?`<button class="btn-copy" data-val="${esc(p.name)}" onclick="copyVal(this)">Name</button>`:''}<button class="btn-copy" data-val="${esc(p.handle)}" onclick="copyVal(this)">USERNAME</button></div></td><td><button class="btn-del" onclick="deleteProfile(${p.id})" title="Delete">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); }
+function copyVal(btn) {
+  navigator.clipboard.writeText(btn.getAttribute('data-val')).then(()=>{
+    const o=btn.textContent; btn.textContent='✓'; btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied');},1200);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
