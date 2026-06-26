@@ -1,7 +1,7 @@
 const http = require('http');
 const https = require('https');
 
-const PORT = 16890;
+const PORT = process.env.PORT || 16890;
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +15,6 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'POST' && req.url === '/upload') {
-    console.log('Received upload request');
     const apiKey = req.headers['x-api-key'];
     if (!apiKey) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -62,7 +61,7 @@ const server = http.createServer((req, res) => {
 
     return;
   }
-  console.log('Received unsupported request:', req.method, req.url);
+
   res.writeHead(404, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({ error: 'Not found' }));
 });

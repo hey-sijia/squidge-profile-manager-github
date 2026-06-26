@@ -1,0 +1,12 @@
+{
+  "name": "squidge-proxy",
+  "version": "1.0.0",
+  "description": "Local proxy for Squidge image uploads",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
