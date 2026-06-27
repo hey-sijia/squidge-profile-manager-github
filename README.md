@@ -16,7 +16,7 @@ The Profile Manager is a local tool for creating and storing fake social media p
 
 Squidge.org is a free image hosting service used to store your avatar images. You need an account to get an API key.
 
-1. Go to [squidge.org](https://squidge.org) and click **Sign Up**
+1. Go to [images.squidge.org](https://images.squidge.org/) and click **Sign Up**
 2. Fill in a username, email, and password and confirm your account
 3. Once logged in, you're ready to find your API key
 
